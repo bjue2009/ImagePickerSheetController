@@ -40,6 +40,13 @@ class SheetController: NSObject {
             .reduce(0, combine: +)
     }
     
+    var preferredSheetWidth: CGFloat {
+        guard #available(iOS 9, *) else {
+            return sheetCollectionView.bounds.width
+        }
+        return sheetCollectionView.bounds.width - 2 * defaultInset
+    }
+    
     // MARK: - Initialization
     
     init(previewCollectionView: PreviewCollectionView) {
@@ -77,7 +84,14 @@ class SheetController: NSObject {
                 return previewHeight
             }
             
-            let actionItemHeight: CGFloat = 57
+            let actionItemHeight: CGFloat
+            
+            if #available(iOS 9, *) {
+                actionItemHeight = 57
+            }
+            else {
+                actionItemHeight = 50
+            }
             
             let insets = attributesForItemAtIndexPath(indexPath).backgroundInsets
             return actionItemHeight + insets.top + insets.bottom
@@ -89,6 +103,10 @@ class SheetController: NSObject {
     // MARK: - Design
     
     private func attributesForItemAtIndexPath(indexPath: NSIndexPath) -> (corners: RoundedCorner, backgroundInsets: UIEdgeInsets) {
+        guard #available(iOS 9, *) else {
+            return (.None, UIEdgeInsets())
+        }
+        
         let cornerRadius: CGFloat = 13
         let innerInset: CGFloat = 4
         var indexPaths = allIndexPaths()
@@ -120,10 +138,11 @@ class SheetController: NSObject {
     }
     
     private func fontForAction(action: ImagePickerAction) -> UIFont {
-        if action.style == .Cancel {
-            return UIFont.boldSystemFontOfSize(21)
+        guard #available(iOS 9, *), action.style == .Cancel else {
+            return UIFont.systemFontOfSize(21)
         }
-        return UIFont.systemFontOfSize(21)
+        
+        return UIFont.boldSystemFontOfSize(21)
     }
     
     // MARK: - Actions
@@ -212,9 +231,16 @@ extension SheetController: UICollectionViewDataSource {
         
         // iOS specific design
         (cell.roundedCorners, cell.backgroundInsets) = attributesForItemAtIndexPath(indexPath)
-        cell.normalBackgroundColor = UIColor(white: 0.97, alpha: 1)
-        cell.highlightedBackgroundColor = UIColor(white: 0.92, alpha: 1)
-        cell.separatorColor = UIColor(white: 0.84, alpha: 1)
+        if #available(iOS 9, *) {
+            cell.normalBackgroundColor = UIColor(white: 0.97, alpha: 1)
+            cell.highlightedBackgroundColor = UIColor(white: 0.92, alpha: 1)
+            cell.separatorColor = UIColor(white: 0.84, alpha: 1)
+        }
+        else {
+            cell.normalBackgroundColor = .whiteColor()
+            cell.highlightedBackgroundColor = UIColor(white: 0.85, alpha: 1)
+            cell.separatorColor = UIColor(white: 0.784, alpha: 1)
+        }
         
         return cell
     }

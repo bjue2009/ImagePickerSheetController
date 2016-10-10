@@ -108,6 +108,10 @@ public class ImagePickerSheetController: UIViewController {
     private var maximumPreviewHeight: CGFloat = 129
     
     private var previewCheckmarkInset: CGFloat {
+        guard #available(iOS 9, *) else {
+            return 3.5
+        }
+        
         return 12.5
     }
     
@@ -228,7 +232,9 @@ public class ImagePickerSheetController: UIViewController {
         }
         
         let fetchLimit = 50
-        options.fetchLimit = fetchLimit
+        if #available(iOS 9, *) {
+            options.fetchLimit = fetchLimit
+        }
         
         let result = PHAsset.fetchAssetsWithOptions(options)
         let requestOptions = PHImageRequestOptions()
@@ -353,7 +359,17 @@ public class ImagePickerSheetController: UIViewController {
         
         view.setNeedsLayout()
         
-        UIView.animateWithDuration(0.2, animations: {
+        let animationDuration: NSTimeInterval
+        if #available(iOS 9, *) {
+            animationDuration = 0.2
+        }
+        else {
+            animationDuration = 0.3
+        }
+        
+        self.sheetCollectionView.collectionViewLayout.invalidateLayout()
+        UIView.animateWithDuration(animationDuration, animations: {
+            self.sheetCollectionView.reloadSections(NSIndexSet(index: 0))
             self.view.layoutIfNeeded()
             self.sheetCollectionView.collectionViewLayout.invalidateLayout()
         }, completion: completion)
